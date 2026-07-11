@@ -15,10 +15,16 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [notice, setNotice] = useState("");
 
-    useEffect(() => {                          
-    if (getToken()) {
+    useEffect(() => {
+        if (getToken()) {
             router.replace("/questionnaire");
+            return;
+        }
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("expired")) {
+            setNotice("Your session has expired. Please sign in again.");
         }
     }, [router]);
 
@@ -77,6 +83,11 @@ export default function LoginPage() {
 
                 {/* Card */}
                 <div className="bg-white rounded-3xl shadow-xl shadow-orange-100/40 border border-orange-100 p-8 space-y-5">
+                    {notice && (
+                        <p className="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
+                            {notice}
+                        </p>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label className="text-sm font-semibold text-stone-700">

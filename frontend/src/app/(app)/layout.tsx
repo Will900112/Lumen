@@ -45,12 +45,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         }
     }
 
-    async function handleLogout() {
-        try {
-            await logout();
-        } catch {
-            // ignore
-        }
+    function handleLogout() {
+        logout();
         router.push("/login");
     }
 

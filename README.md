@@ -3,6 +3,7 @@
 ![CI](https://github.com/Will900112/Lumen/actions/workflows/ci.yml/badge.svg)
 
 **Live demo:** [lumen-one-iota.vercel.app](https://lumen-one-iota.vercel.app)
+*(first request may take ~30s — free-tier backend cold start)*
 
 Personalized supplement recommendations powered by a multi-agent RAG pipeline.
 Lumen analyzes a user's diet, lifestyle, symptoms, and goals to recommend
@@ -121,7 +122,7 @@ cd backend
 pip install -r requirements.txt
 ```
 
-Create `backend/.env`:
+Create `backend/.env` (see `backend/.env.example`):
 
 ```env
 # Required

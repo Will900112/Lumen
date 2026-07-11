@@ -63,9 +63,9 @@ export async function login(email: string, password: string) {
   return data;
 }
 
-export async function logout() {
+// JWT is stateless — the server has nothing to revoke, so logout is local only.
+export function logout() {
   clearToken();
-  await request("/auth/jwt/logout", { method: "POST" });
 }
 
 export async function googleAuthorize() {
