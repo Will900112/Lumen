@@ -1,5 +1,9 @@
 # Lumen — AI Supplement Advisor
 
+![CI](https://github.com/Will900112/Lumen/actions/workflows/ci.yml/badge.svg)
+
+**Live demo:** [lumen-one-iota.vercel.app](https://lumen-one-iota.vercel.app)
+
 Personalized supplement recommendations powered by a multi-agent RAG pipeline.
 Lumen analyzes a user's diet, lifestyle, symptoms, and goals to recommend
 evidence-backed supplements, with herb–drug interaction checks against the
@@ -166,11 +170,25 @@ npm run dev
 
 Source PDFs (clinical references) live in `backend/data/raw/` (gitignored).
 
-1. **Parse** — `backend/data/etl_parse.py` uses LlamaParse to convert PDFs to Markdown
-2. **Chunk** — `backend/data/etl_chunk.py` chunks and embeds passages, uploads to vector DB
+1. **Parse** — `python data/etl_parse.py` converts all source PDFs to Markdown via LlamaParse
+2. **Chunk** — `python data/etl_chunk.py` chunks each book, batch-embeds with OpenAI, and upserts to the matching Pinecone index
 
-Migration to Pinecone (if porting from a local Chroma store) is handled by a
-one-off `migrate_to_pinecone.py` script.
+Both scripts are idempotent: parsed files are skipped if present, and chunk IDs
+are deterministic so re-running overwrites in place.
+
+---
+
+## Testing
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+```
+
+Covers the ETL chunking logic, OAuth CSRF state validation (expiry, tampering,
+wrong audience, forged signature), and auth guards on every user-facing
+endpoint. CI runs the suite plus a frontend production build on every push.
 
 ---
 
