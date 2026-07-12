@@ -232,6 +232,10 @@ clinical index in production.
 4. **Balancing** (`prune_eval_set.py`) — randomly downsampled to **60 queries
    per index (180 total)**. Random, not top-scored, so the grader model's
    preference is not baked in.
+5. **Manual review** — the final set is exported to a human-readable file
+   (`eval_review.md`, each query with its gold chunk and grader note) and
+   spot-checked by hand, since synthetic data carries model bias that automated
+   scoring alone will not catch.
 
 Each query is scored only against its own index (gap queries hit `lumen-gap`,
 etc.). Gold is a single chunk id, so **Recall@k** = "was the gold chunk in the
@@ -285,16 +289,20 @@ top k" and **MRR@10** = how highly it ranked.
 
 ### From evaluation to production
 
-The benchmark drove one change: the **interactions** safety lookup (Agent 4)
-was switched from dense to its best configuration, **BM25 + rerank**. BM25 is
-built in memory at startup from the Pinecone corpus, so it stays in sync with
-the vector store.
+The benchmark drove a real change: both **gap** (Agent 3) and **interactions**
+(Agent 4) retrieval were switched from dense to their best configuration,
+**BM25 + rerank**. The BM25 indexes are built in memory at startup from the
+Pinecone corpus, so they stay in sync with the vector store.
 
-**gap** showed a similar BM25 lean but wasn't migrated — the gain is modest and
-its retrieval sits inside Agent 3's parallel loop, so it's left as a scoped next
-step rather than a riskier refactor for a small win. **clinical** stays on dense
-(the one index where dense wins), which also avoids loading a BM25 index it
-doesn't need — memory headroom matters on the free-tier backend.
+Beyond higher recall, BM25 is also **faster and cheaper per query**: it runs
+locally in memory, skipping both the OpenAI embedding call and the Pinecone
+network round-trip that dense retrieval requires — so the change improves
+latency and cost at the same time.
+
+**clinical** stays on dense + rerank — the one index where dense wins (efficacy
+is described semantically, e.g. "improves sleep quality"), which also avoids
+loading a BM25 index it doesn't need. Memory headroom matters on the free-tier
+backend.
 
 ### Caveats
 

@@ -32,7 +32,7 @@ from auth import (
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    build_bm25_indexes(["collection_interactions"])
+    build_bm25_indexes(["collection_interactions", "collection_gap"])
     yield
 
 

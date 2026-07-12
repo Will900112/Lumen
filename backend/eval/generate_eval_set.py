@@ -43,9 +43,9 @@ CONCURRENCY = 10
 # own recall comparison statistically stable (~40 after review is plenty).
 # Sizes account for differing usable rates, not corpus size.
 SAMPLE_SIZE = {
-    "lumen-gap": 550,       # strict realism + cause/outcome rule -> aim ~50
-    "lumen-clinical": 200,  # citation/boundary/rare-disease filters -> aim ~40
-    "lumen-interactions": 90,  # clean corpus, high usable rate -> aim ~40
+    "lumen-gap": 550,       # strict realism + cause/outcome rule 
+    "lumen-clinical": 200,  # citation/boundary/rare-disease filters 
+    "lumen-interactions": 90,  # clean corpus, high usable rate 
 }
 
 MIN_CHARS = 300
