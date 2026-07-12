@@ -3,11 +3,11 @@
 Pipeline (junk chunks stay in the corpus as realistic distractors — filtering
 only decides which chunks are worth generating queries FROM):
 
-    stratified random sample (3x oversample per index)
+    stratified random sample (oversampled per index)
       -> rule filter        (drop obvious non-prose: too short, low letter ratio)
-      -> LLM filter + generate  (one gpt-4o-mini call judges usability AND
-                                 writes a production-style retrieval query)
-      -> keep first N per index
+      -> LLM filter + generate  (one LLM call judges usability AND writes a
+                                 production-style retrieval query)
+      -> keep every usable pair (verify_gold.py + prune_eval_set.py trim later)
 
 Queries mimic the style of agent3's `query_context` (short clinical phrases),
 because that is the query distribution production retrieval actually serves.

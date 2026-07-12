@@ -36,7 +36,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: "Unknown error" }));
-    throw new Error(error.detail || `HTTP ${res.status}`);
+    // detail can be a plain string or an object like {step, message}
+    const detail = error.detail;
+    const message =
+      typeof detail === "string"
+        ? detail
+        : detail?.message || `HTTP ${res.status}`;
+    throw new Error(message);
   }
 
   return res.json();

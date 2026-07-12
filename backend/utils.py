@@ -1,11 +1,14 @@
 import os
+import re
+import threading
+
+import cohere
 import openai
 from dotenv import load_dotenv
-from config import EMBEDDING_MODEL
-import cohere
 from pinecone import Pinecone
-import re
 from rank_bm25 import BM25Okapi
+
+from config import EMBEDDING_MODEL, RERANKER_MODEL
 
 load_dotenv()
 
@@ -31,7 +34,7 @@ async def rerank_with_cohere(query: str, documents: list[str]) -> list[float]:
     results = await co.rerank(
         query=query,
         documents=documents,
-        model="rerank-v3.5",
+        model=RERANKER_MODEL,
         top_n=len(documents),
     )
     scores = [0.0] * len(documents)
@@ -49,26 +52,47 @@ async def get_embeddings_batch(texts: list[str]) -> list[list]:
 
 
 _bm25_cache = {}
+_bm25_lock = threading.Lock()
 
 def _tokenize(text: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", text.lower())
 
+def _iter_id_batches(index, batch_size: int = 100):
+    """Normalize index.list() output across Pinecone SDK versions:
+    some yield ListResponse pages, others yield bare id strings."""
+    buffer: list[str] = []
+    for item in index.list(limit=batch_size):
+        if hasattr(item, "vectors"):  # ListResponse page
+            yield [v.id for v in item.vectors]
+        elif isinstance(item, str):
+            buffer.append(item)
+            if len(buffer) == batch_size:
+                yield buffer
+                buffer = []
+        else:
+            yield list(item)
+    if buffer:
+        yield buffer
+
 def _fetch_all_docs(collection_name: str) -> list[str]:
     index = _pc.Index(PINECONE_INDEX[collection_name])
     docs = []
-    for page in index.list():                     
-        ids = [item.id for item in page.vectors]
+    for ids in _iter_id_batches(index):
         if not ids:
             continue
-        res = index.fetch(ids=ids)                
+        res = index.fetch(ids=ids)
         docs.extend(v.metadata.get("document", "") for v in res.vectors.values())
     return docs
 
 def _get_bm25(collection_name: str):
+    # Lock so concurrent callers (agent3 runs retrieval in a thread pool)
+    # don't each fetch the whole index when the cache is cold.
     if collection_name not in _bm25_cache:
-        docs = _fetch_all_docs(collection_name)
-        bm25 = BM25Okapi([_tokenize(d) for d in docs])
-        _bm25_cache[collection_name] = (bm25, docs)
+        with _bm25_lock:
+            if collection_name not in _bm25_cache:
+                docs = _fetch_all_docs(collection_name)
+                bm25 = BM25Okapi([_tokenize(d) for d in docs])
+                _bm25_cache[collection_name] = (bm25, docs)
     return _bm25_cache[collection_name]
 
 def bm25_query(collection_name: str, query_text: str, n_results: int = 20) -> list[str]:

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import time
 import jwt
@@ -13,7 +14,7 @@ from sqlalchemy import select
 
 load_dotenv()
 
-from utils import build_bm25_indexes   
+from utils import build_bm25_indexes
 from pipeline import run, chat, PipelineError
 from state import AgentSharedState, SupplementRecommendation
 from database import engine, get_async_session, Base
@@ -22,7 +23,7 @@ from auth import (
     auth_backend,
     fastapi_users,
     current_active_user,
-    google_oauth_client ,
+    google_oauth_client,
     UserCreate,
     UserRead,
     UserUpdate,
@@ -32,7 +33,8 @@ from auth import (
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    build_bm25_indexes(["collection_interactions", "collection_gap"])
+    # BM25 build fetches whole indexes from Pinecone — keep it off the event loop
+    await asyncio.to_thread(build_bm25_indexes, ["collection_interactions", "collection_gap"])
     yield
 
 
@@ -227,7 +229,7 @@ async def chat_endpoint(
     result = await db.execute(
         select(Message)
         .where(Message.session_id == req.session_id)
-        .order_by(Message.created_at)
+        .order_by(Message.id)
     )
     messages = result.scalars().all()
     history = [{"role": m.role, "content": m.content} for m in messages]
@@ -281,7 +283,7 @@ async def get_session(
     msg_result = await db.execute(
         select(Message)
         .where(Message.session_id == session_id)
-        .order_by(Message.created_at)
+        .order_by(Message.id)
     )
     messages = msg_result.scalars().all()
 
@@ -307,6 +309,17 @@ async def save_supplement(
     user: User = Depends(current_active_user),
     db: AsyncSession = Depends(get_async_session),
 ):
+    # The session must exist and belong to this user, otherwise the insert
+    # would either hit a FK violation (500) or attach to someone else's session.
+    session_result = await db.execute(
+        select(DBSession).where(
+            DBSession.id == req.session_id,
+            DBSession.user_id == user.id,
+        )
+    )
+    if session_result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
     result = await db.execute(
         select(SavedSupplement).where(
             SavedSupplement.user_id == user.id,

@@ -4,10 +4,9 @@ from openai import AsyncOpenAI
 from dotenv import load_dotenv
 import os
 import json
-import numpy as np
 from state import AgentSharedState, SupplementRecommendation
 from config import LLM_MODEL
-from utils import bm25_query, get_embedding, rerank_with_cohere
+from utils import bm25_query, rerank_with_cohere
 
 load_dotenv()
 
@@ -37,7 +36,6 @@ async def fetch_interaction_context(candidate_names: list[str], safety_profile: 
     supp_str = ", ".join(candidate_names[:6])
     query    = f"supplement interaction {med_str} {cond_str} {supp_str}".strip()
 
-  
     # BM25 query run in a thread
     chunks = await asyncio.to_thread(
         bm25_query, "collection_interactions", query, 15
@@ -125,10 +123,10 @@ Your job: go down each list in order, skip any that are unsafe for this user, pi
 {json.dumps(layers_input, indent=2, ensure_ascii=False)}
 
 === INTERACTION CONTEXT ===
-Note: The passages below were retrieved by vector search using the normalized medication names.
+Note: The passages below were retrieved by keyword search (BM25) + reranking using the normalized medication names.
 1. If any medication above is marked as "uncertain match", the retrieved passages below may not be directly relevant —
 use your own clinical knowledge to judge whether the content actually applies.
-2. Vector search is imperfect — retrieved passages may be partially off-topic or not directly
+2. Retrieval is imperfect — retrieved passages may be partially off-topic or not directly
 applicable to this user's specific medications. Read each passage critically and judge
 whether it is actually relevant before acting on it.
 

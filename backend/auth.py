@@ -31,6 +31,10 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User, OAuthAccount)
 
 SECRET = os.getenv("SECRET_KEY")
+if not SECRET:
+    # Fail fast at import time — otherwise the first login attempt dies
+    # inside JWT encoding with a much more confusing error.
+    raise RuntimeError("SECRET_KEY environment variable is not set")
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = SECRET

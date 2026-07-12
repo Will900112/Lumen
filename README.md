@@ -62,7 +62,7 @@ User questionnaire
           ▼
 ┌────────────────────┐
 │ Agent 3            │  RAG grounder
-│ rag_grounder       │  → Pinecone retrieve + Cohere rerank → evidence scores
+│ rag_grounder       │  → BM25 (gap) / dense (clinical) + Cohere rerank → scores
 └─────────┬──────────┘
           ▼
 ┌────────────────────┐

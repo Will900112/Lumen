@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import uuid
-from sqlalchemy import String, DateTime, ForeignKey, JSON
+from sqlalchemy import String, DateTime, ForeignKey, JSON, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID, SQLAlchemyBaseOAuthAccountTableUUID
 from database import Base
@@ -35,7 +35,9 @@ class Session(Base):
 class Message(Base):
     __tablename__ = "messages"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    # Auto-increment PK doubles as a chronological tiebreaker: created_at can
+    # collide when the user/assistant pair is inserted in the same commit.
+    id: Mapped[int] = mapped_column(primary_key=True)
     session_id: Mapped[str] = mapped_column(ForeignKey("sessions.id"))
     role: Mapped[str] = mapped_column(String)
     content: Mapped[str] = mapped_column(String)
@@ -46,6 +48,7 @@ class Message(Base):
 
 class SavedSupplement(Base):
     __tablename__ = "saved_supplements"
+    __table_args__ = (UniqueConstraint("user_id", "name", name="uq_saved_user_name"),)
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))

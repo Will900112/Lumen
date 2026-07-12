@@ -19,18 +19,9 @@ PARSED_DIR = os.path.join(DATA_DIR, "parsed")
 
 # output markdown filename -> source PDF filename
 BOOKS = {
-    "modern_nutrition.md": (
-        "Modern Nutrition in Health and Disease (Katherine L. Tucker, "
-        "Christopher P. Duggan etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf"
-    ),
-    "nutritional_medicine.md": (
-        "Nutritional Medicine (First Edition) (Alan Gaby MD) "
-        "(z-library.sk, 1lib.sk, z-lib.sk).pdf"
-    ),
-    "stockleys_interactions.md": (
-        "Stockleys Herbal Medicines Interactions (Elizabeth Williamson, "
-        "Samuel Driver etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf"
-    ),
+    "modern_nutrition.md": "modern_nutrition.pdf",
+    "nutritional_medicine.md": "nutritional_medicine.pdf",
+    "stockleys_interactions.md": "stockleys_interactions.pdf",
 }
 
 

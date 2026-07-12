@@ -106,7 +106,8 @@ export default function ResultPage() {
     }, [messages, sending]);
 
     async function handleSend() {
-        if (!message.trim()) return;
+        // guard `sending` too: the button is disabled but Enter is not
+        if (sending || !message.trim()) return;
         const userMsg = message;
         setMessage("");
         setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
