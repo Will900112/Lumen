@@ -232,8 +232,7 @@ clinical index in production.
 4. **Balancing** (`prune_eval_set.py`) — randomly downsampled to **60 queries
    per index (180 total)**. Random, not top-scored, so the grader model's
    preference is not baked in.
-5. **Manual review** — the final set is exported to a human-readable file
-   (`eval_review.md`, each query with its gold chunk and grader note) and
+5. **Manual review** — the final set is exported to a human-readable file and
    spot-checked by hand, since synthetic data carries model bias that automated
    scoring alone will not catch.
 
