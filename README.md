@@ -208,7 +208,7 @@ question and queried by a different agent:
 |---|---|---|
 | **gap** | nutrient-deficiency evidence, from diet/lifestyle | cause → mechanism → deficiency |
 | **clinical** | supplement efficacy for symptoms/goals | "[supplement] [verb] [outcome] in [condition]" |
-| **interactions** | herb–drug interaction evidence | keyword stack (herb + drug + effect) |
+| **interactions** | supplement–drug interaction evidence | keyword stack (supplement + drug + effect) |
 
 Each is evaluated independently, since a gap query is never run against the
 clinical index in production.
@@ -260,7 +260,7 @@ top k" and **MRR@10** = how highly it ranked.
 |---|---|---|---|---|---|---|---|---|---|
 | dense | 0.550 | 0.833 | 0.333 | 0.933 | 0.967 | 0.664 | 0.883 | 0.967 | 0.709 |
 | bm25 | 0.683 | 0.933 | 0.493 | 0.817 | 0.967 | 0.633 | 0.967 | 1.000 | 0.858 |
-| hybrid | 0.683 | 0.917 | 0.450 | 0.883 | 0.983 | 0.685 | 0.950 | 0.983 | 0.776 |
+| hybrid | 0.683 | 0.917 | 0.450 | 0.883 | **0.983** | 0.685 | 0.950 | 0.983 | 0.776 |
 | dense + rerank | 0.767 | 0.917 | 0.508 | **0.983** | **0.983** | **0.817** | 0.983 | 0.983 | 0.871 |
 | bm25 + rerank | **0.817** | 0.950 | **0.532** | 0.967 | **0.983** | **0.817** | **1.000** | **1.000** | **0.879** |
 | hybrid + rerank | 0.800 | **0.967** | 0.524 | 0.967 | **0.983** | **0.817** | **1.000** | **1.000** | **0.879** |
