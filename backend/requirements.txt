@@ -10,6 +10,7 @@ numpy==2.4.6
 # RAG
 pinecone>=5.0
 cohere>=7.0
+rank_bm25>=0.2
 
 # DB & Auth
 sqlalchemy[asyncio]>=2.0

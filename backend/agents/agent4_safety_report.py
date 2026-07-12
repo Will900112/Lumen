@@ -7,7 +7,7 @@ import json
 import numpy as np
 from state import AgentSharedState, SupplementRecommendation
 from config import LLM_MODEL
-from utils import get_embedding, rerank_with_cohere, pinecone_query
+from utils import bm25_query, get_embedding, rerank_with_cohere
 
 load_dotenv()
 
@@ -37,12 +37,10 @@ async def fetch_interaction_context(candidate_names: list[str], safety_profile: 
     supp_str = ", ".join(candidate_names[:6])
     query    = f"supplement interaction {med_str} {cond_str} {supp_str}".strip()
 
-   
-    embedding = await get_embedding(query)
-
-    # Pinecone SDK is sync — run in a thread
+  
+    # BM25 query run in a thread
     chunks = await asyncio.to_thread(
-        pinecone_query, "collection_interactions", embedding, 15
+        bm25_query, "collection_interactions", query, 15
     )
     if not chunks:
         return ""

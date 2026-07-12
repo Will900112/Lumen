@@ -13,6 +13,7 @@ from sqlalchemy import select
 
 load_dotenv()
 
+from utils import build_bm25_indexes   
 from pipeline import run, chat, PipelineError
 from state import AgentSharedState, SupplementRecommendation
 from database import engine, get_async_session, Base
@@ -31,6 +32,7 @@ from auth import (
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    build_bm25_indexes(["collection_interactions"])
     yield
 
 
